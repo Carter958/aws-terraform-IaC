@@ -1,5 +1,4 @@
-# main.tf in /modules/compute
-
+# Security Group for instances
 resource "aws_security_group" "instance" {
   vpc_id = var.vpc_id
 
@@ -18,10 +17,35 @@ resource "aws_security_group" "instance" {
   }
 }
 
+# Launch Template for ASG
 resource "aws_launch_template" "app" {
   name_prefix   = "app-launch-template"
-  image_id      = "ami-03972092c42e8c0ca" # Linux 2
+  image_id      = "ami-03972092c42e8c0ca" # Replace with your AMI ID
   instance_type = "t2.micro"
+
+  user_data = base64encode(<<EOF
+#!/bin/bash
+yum install -y amazon-cloudwatch-agent
+cat <<EOT > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+{
+  "logs": {
+    "logs_collected": {
+      "files": {
+        "collect_list": [
+          {
+            "file_path": "/var/log/cloud-init.log",
+            "log_group_name": "cloud-init-log-group",
+            "log_stream_name": "{instance_id}/cloud-init-log"
+          }
+        ]
+      }
+    }
+  }
+}
+EOT
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s
+EOF
+  )
 
   network_interfaces {
     security_groups = [aws_security_group.instance.id]
@@ -35,8 +59,9 @@ resource "aws_launch_template" "app" {
   }
 }
 
+# Auto Scaling Group
 resource "aws_autoscaling_group" "app" {
-  vpc_zone_identifier    = [var.public_subnet_id_1, var.public_subnet_id_2]  # Specify the subnet IDs
+  vpc_zone_identifier    = [var.public_subnet_id_1, var.public_subnet_id_2]
   desired_capacity       = 2
   max_size               = 3
   min_size               = 1
@@ -52,6 +77,7 @@ resource "aws_autoscaling_group" "app" {
   }
 }
 
+# Target Group for the Load Balancer
 resource "aws_lb_target_group" "app" {
   name     = "app-target-group"
   port     = 80
@@ -72,12 +98,13 @@ resource "aws_lb_target_group" "app" {
   }
 }
 
+# Load Balancer
 resource "aws_lb" "app" {
   name               = "app-load-balancer"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.instance.id]
-  subnets            = [var.public_subnet_id_1, var.public_subnet_id_2]  # Two subnets in different AZs
+  subnets            = [var.public_subnet_id_1, var.public_subnet_id_2]
 
   enable_deletion_protection = false
 
@@ -86,6 +113,7 @@ resource "aws_lb" "app" {
   }
 }
 
+# Attach the Auto Scaling Group to the Load Balancer
 resource "aws_autoscaling_attachment" "asg_attachment" {
   autoscaling_group_name = aws_autoscaling_group.app.name
   lb_target_group_arn    = aws_lb_target_group.app.arn
