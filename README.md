@@ -110,14 +110,10 @@ terraform destroy
 
 This will remove all the AWS resources created by Terraform.
 
-## **Contributing**
-
-Contributions are welcome! Please fork the repository and create a pull request with your changes. For major changes, please open an issue first to discuss what you would like to change.
-
 ## **License**
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
 
-**Note**: Always ensure that sensitive information like access keys or credentials is not hard-coded in your Terraform files or shared in your version control system.
+
