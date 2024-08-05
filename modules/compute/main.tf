@@ -18,25 +18,20 @@ resource "aws_security_group" "instance" {
   }
 }
 
-resource "aws_instance" "web" {
-  ami                    = "ami-03972092c42e8c0ca"
-  instance_type          = "t2.micro"
-  subnet_id              = var.public_subnet_id_1  # Use the first public subnet
-  vpc_security_group_ids = [aws_security_group.instance.id]
-
-  tags = {
-    Name = "TerraformExampleInstance"
-  }
-}
-
-resource "aws_launch_configuration" "app" {
-  name          = "app-launch-configuration"
+resource "aws_launch_template" "app" {
+  name_prefix   = "app-launch-template"
   image_id      = "ami-03972092c42e8c0ca" # Use a valid AMI ID
   instance_type = "t2.micro"
-  security_groups = [aws_security_group.instance.id]
 
-  lifecycle {
-    create_before_destroy = true
+  network_interfaces {
+    security_groups = [aws_security_group.instance.id]
+  }
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "app-instance"
+    }
   }
 }
 
@@ -45,18 +40,16 @@ resource "aws_autoscaling_group" "app" {
   desired_capacity       = 2
   max_size               = 3
   min_size               = 1
-  launch_configuration   = aws_launch_configuration.app.id
+  launch_template {
+    id      = aws_launch_template.app.id
+    version = "$Latest"
+  }
 
   tag {
     key                 = "Name"
     value               = "app-instance"
     propagate_at_launch = true
   }
-}
-
-
-output "autoscaling_group_id" {
-  value = aws_autoscaling_group.app.id
 }
 
 resource "aws_lb_target_group" "app" {
@@ -95,6 +88,5 @@ resource "aws_lb" "app" {
 
 resource "aws_autoscaling_attachment" "asg_attachment" {
   autoscaling_group_name = aws_autoscaling_group.app.name
-  lb_target_group_arn   = aws_lb_target_group.app.arn
+  lb_target_group_arn    = aws_lb_target_group.app.arn
 }
-
