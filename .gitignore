@@ -15,9 +15,6 @@ override.tf.json
 *_override.tf
 *_override.tf.json
 
-# Include override files you do wish to add to version control
-!example_override.tf
-
 # Include tfplan files
 *.tfplan
 
