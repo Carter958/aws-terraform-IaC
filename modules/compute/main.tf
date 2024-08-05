@@ -20,7 +20,7 @@ resource "aws_security_group" "instance" {
 
 resource "aws_launch_template" "app" {
   name_prefix   = "app-launch-template"
-  image_id      = "ami-03972092c42e8c0ca" # Use a valid AMI ID
+  image_id      = "ami-03972092c42e8c0ca" # Linux 2
   instance_type = "t2.micro"
 
   network_interfaces {
@@ -89,4 +89,21 @@ resource "aws_lb" "app" {
 resource "aws_autoscaling_attachment" "asg_attachment" {
   autoscaling_group_name = aws_autoscaling_group.app.name
   lb_target_group_arn    = aws_lb_target_group.app.arn
+}
+
+# Target Tracking Scaling Policy
+resource "aws_autoscaling_policy" "cpu_target_tracking" {
+  name                   = "cpu-target-tracking"
+  policy_type            = "TargetTrackingScaling"
+  estimated_instance_warmup = 300
+
+  target_tracking_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ASGAverageCPUUtilization"
+    }
+
+    target_value = 50.0
+  }
+
+  autoscaling_group_name = aws_autoscaling_group.app.name
 }
