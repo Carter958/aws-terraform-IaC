@@ -1,0 +1,22 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo Installing dependencies...
+      - npm install # or the equivalent for your app
+
+  pre_build:
+    commands:
+      - echo Running pre-build scripts...
+      - npm run lint # Optional: Linting
+
+  build:
+    commands:
+      - echo Build started on `date`
+      - npm run build # or the equivalent for your app
+
+artifacts:
+  files:
+    - '**/*'
+    - '!node_modules/**/*' # Example of excluding files
