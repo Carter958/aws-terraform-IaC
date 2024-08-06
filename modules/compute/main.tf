@@ -17,10 +17,10 @@ resource "aws_security_group" "instance" {
   }
 }
 
-# Launch Template for ASG
+# aws_launch_template definition
 resource "aws_launch_template" "app" {
   name_prefix   = "app-launch-template"
-  image_id      = "ami-03972092c42e8c0ca" # Replace with your AMI ID
+  image_id      = "ami-03972092c42e8c0ca"
   instance_type = "t2.micro"
 
   user_data = base64encode(<<EOF
@@ -47,6 +47,11 @@ EOT
 EOF
   )
 
+  # Attach IAM Instance Profile
+  iam_instance_profile {
+    name = var.iam_instance_profile
+  }
+
   network_interfaces {
     security_groups = [aws_security_group.instance.id]
   }
@@ -58,6 +63,9 @@ EOF
     }
   }
 }
+
+
+
 
 # Auto Scaling Group
 resource "aws_autoscaling_group" "app" {

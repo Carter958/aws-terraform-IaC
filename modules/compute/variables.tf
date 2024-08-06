@@ -15,4 +15,10 @@ variable "public_subnet_id_2" {
   type        = string
 }
 
+variable "iam_instance_profile" {
+  description = "The IAM instance profile to use for EC2 instances"
+  type        = string
+}
+
+
 
