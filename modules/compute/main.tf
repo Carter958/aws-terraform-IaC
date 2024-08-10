@@ -25,7 +25,6 @@ resource "aws_security_group" "instance" {
   }
 }
 
-# aws_launch_template definition
 resource "aws_launch_template" "app" {
   name_prefix   = "app-launch-template"
   image_id      = "ami-03972092c42e8c0ca"
@@ -33,7 +32,19 @@ resource "aws_launch_template" "app" {
 
   user_data = base64encode(<<EOF
 #!/bin/bash
-yum install -y amazon-cloudwatch-agent
+set -x  # Enable shell debugging
+
+# Log the start of the user data script
+echo "Starting user data script" >> /var/log/user-data.log
+
+# Install the Amazon CloudWatch Agent
+yum install -y amazon-cloudwatch-agent >> /var/log/user-data.log 2>&1
+if [ $? -ne 0 ]; then
+  echo "CloudWatch Agent installation failed" >> /var/log/user-data.log
+  exit 1
+fi
+
+# Configure CloudWatch Agent
 cat <<EOT > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 {
   "logs": {
@@ -51,7 +62,42 @@ cat <<EOT > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
   }
 }
 EOT
-/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s
+
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s >> /var/log/user-data.log 2>&1
+if [ $? -ne 0 ]; then
+  echo "CloudWatch Agent configuration failed" >> /var/log/user-data.log
+  exit 1
+fi
+
+# Install the AWS CodeDeploy Agent
+yum install -y ruby wget >> /var/log/user-data.log 2>&1
+if [ $? -ne 0 ]; then
+  echo "Failed to install Ruby or Wget" >> /var/log/user-data.log
+  exit 1
+fi
+
+cd /home/ec2-user >> /var/log/user-data.log 2>&1
+wget https://aws-codedeploy-us-east-1.s3.amazonaws.com/latest/install >> /var/log/user-data.log 2>&1
+if [ $? -ne 0 ]; then
+  echo "Failed to download CodeDeploy agent" >> /var/log/user-data.log
+  exit 1
+fi
+
+chmod +x ./install >> /var/log/user-data.log 2>&1
+./install auto >> /var/log/user-data.log 2>&1
+if [ $? -ne 0 ]; then
+  echo "CodeDeploy Agent installation failed" >> /var/log/user-data.log
+  exit 1
+fi
+
+service codedeploy-agent start >> /var/log/user-data.log 2>&1
+if [ $? -ne 0 ]; then
+  echo "Failed to start CodeDeploy agent" >> /var/log/user-data.log
+  exit 1
+fi
+
+echo "User data script completed successfully" >> /var/log/user-data.log
+
 EOF
   )
 
@@ -71,9 +117,6 @@ EOF
     }
   }
 }
-
-
-
 
 # Auto Scaling Group
 resource "aws_autoscaling_group" "app" {
