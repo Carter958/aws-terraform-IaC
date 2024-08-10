@@ -2,4 +2,9 @@
 # Validate service script
 
 # Example: Checking if the server is running
-curl -f http://localhost:3000 || exit 1
+if curl -f http://localhost:3000; then
+  echo "Server is running."
+else
+  echo "Server is not running."
+  exit 1
+fi

@@ -6,8 +6,8 @@ mkdir -p /var/www/html
 cd /var/www/html || { echo "Directory /var/www/html not found"; exit 1; }
 
 # Install Node.js and npm
-curl -fsSL https://deb.nodesource.com/setup_14.x | sudo -E bash -
-sudo apt-get install -y nodejs
+curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
+sudo yum install -y nodejs
 
 # Install Node.js dependencies
 npm install
