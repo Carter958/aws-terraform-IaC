@@ -1,6 +1,8 @@
 #!/bin/bash
 # Install dependencies script
 
-# Example: Installing dependencies for a Node.js application
-cd /path/to/your/app
+# Navigate to the application directory
+cd /var/www/html
+
+# Install Node.js dependencies
 npm install

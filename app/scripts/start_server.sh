@@ -1,6 +1,8 @@
 #!/bin/bash
 # Start server script
 
-# Example: Starting a Node.js server
-cd /path/to/your/app
+# Navigate to the application directory
+cd /var/www/html
+
+# Start the Node.js server
 npm start
