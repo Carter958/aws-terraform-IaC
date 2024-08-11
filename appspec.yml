@@ -7,11 +7,11 @@ files:
       - .git/**
       - README.md
 hooks:
-  ApplicationStop:
-    - location: app/scripts/stop_server.sh
+  BeforeInstall:
+    - location: app/scripts/before_install.sh
       timeout: 300
       runas: root
-  BeforeInstall:
+  AfterInstall:
     - location: app/scripts/install_dependencies.sh
       timeout: 300
       runas: root
