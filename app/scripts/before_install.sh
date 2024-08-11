@@ -12,6 +12,11 @@ sudo yum update -y
 echo "Installing essential system packages..."
 sudo yum install -y git curl
 
+# Remove existing files in the target directory
+TARGET_DIR="/var/www/html"
+echo "Removing existing files in $TARGET_DIR..."
+sudo rm -rf $TARGET_DIR/*
+
 # Any other preparation steps
 echo "Running additional preparation steps..."
 # e.g., stopping existing services, cleaning up old files, etc.
