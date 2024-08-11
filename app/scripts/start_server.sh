@@ -2,7 +2,7 @@
 # Start server script
 
 # Navigate to the application directory
-cd /var/www/html || { echo "Directory /var/www/html not found"; exit 1; }
+cd /var/www/html/app || { echo "Directory /var/www/html/app not found"; exit 1; }
 
 # Start the Node.js server
 if npm start; then
