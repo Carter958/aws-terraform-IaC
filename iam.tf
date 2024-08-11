@@ -71,6 +71,21 @@ resource "aws_iam_role_policy_attachment" "attach_codedeploy_fullaccess" {
   role       = aws_iam_role.ec2_instance_role.name
 }
 
+resource "aws_iam_role_policy_attachment" "attach_ec2_codedeploy_role" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforAWSCodeDeploy"
+  role       = aws_iam_role.ec2_instance_role.name
+}
+
+resource "aws_iam_role_policy_attachment" "attach_cloudwatch_agent_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+  role       = aws_iam_role.ec2_instance_role.name
+}
+
+resource "aws_iam_role_policy_attachment" "attach_s3_readonly" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+  role       = aws_iam_role.ec2_instance_role.name
+}
+
 resource "aws_iam_instance_profile" "instance_profile" {
   name = "EC2InstanceProfile"
   role = aws_iam_role.ec2_instance_role.name
