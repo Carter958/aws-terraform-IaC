@@ -3,6 +3,9 @@ os: linux
 files:
   - source: /
     destination: /var/www/html
+    exclusions:
+      - .git/**
+      - README.md
 hooks:
   ApplicationStop:
     - location: app/scripts/stop_server.sh
