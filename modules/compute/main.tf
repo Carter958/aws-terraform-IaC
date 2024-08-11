@@ -25,9 +25,10 @@ resource "aws_security_group" "instance" {
   }
 }
 
+# Launch Template for EC2 Instances
 resource "aws_launch_template" "app" {
   name_prefix   = "app-launch-template"
-  image_id      = "ami-03972092c42e8c0ca"
+  image_id      = "ami-03972092c42e8c0ca"  # Example AMI ID, change to your region-specific ID
   instance_type = "t2.micro"
 
   user_data = base64encode(<<EOF
@@ -121,7 +122,7 @@ EOF
 # Auto Scaling Group
 resource "aws_autoscaling_group" "app" {
   vpc_zone_identifier    = [var.public_subnet_id_1, var.public_subnet_id_2]
-  desired_capacity       = 2
+  desired_capacity       = 1
   max_size               = 3
   min_size               = 1
   launch_template {
@@ -169,6 +170,18 @@ resource "aws_lb" "app" {
 
   tags = {
     Name = "app-load-balancer"
+  }
+}
+
+# Listener for the Load Balancer
+resource "aws_lb_listener" "app" {
+  load_balancer_arn = aws_lb.app.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.app.arn
   }
 }
 
