@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Change to the directory where package.json is located
+cd /var/www/html
+
 # Start the server
 npm start &
 
