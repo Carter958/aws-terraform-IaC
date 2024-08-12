@@ -4,7 +4,7 @@
   "description": "Example of Terraform Infrastructure as Code",
   "main": "index.js",
   "scripts": {
-    "start": "node app/index.js",
+    "start": "node app/src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Carter Castleberry",
