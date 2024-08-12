@@ -129,6 +129,7 @@ EOF
 
 # Auto Scaling Group
 resource "aws_autoscaling_group" "app" {
+  name               = "app-autoscaling-group"
   vpc_zone_identifier = [var.public_subnet_id_1, var.public_subnet_id_2]
   desired_capacity    = 1
   max_size            = 3
@@ -142,6 +143,10 @@ resource "aws_autoscaling_group" "app" {
     key                 = "Name"
     value               = "app-instance"
     propagate_at_launch = true
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
