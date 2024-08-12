@@ -1,13 +1,17 @@
 #!/bin/bash
-# Start server script
 
-# Navigate to the application directory
-cd /var/www/html/app || { echo "Directory /var/www/html/app not found"; exit 1; }
+# Start the server
+npm start &
 
-# Start the Node.js server
-if npm start; then
-  echo "Server started successfully."
-else
-  echo "Failed to start the server."
-  exit 1
-fi
+# Wait for the server to start
+timeout=60
+while ! curl -s http://localhost:3000 > /dev/null; do
+  timeout=$((timeout - 1))
+  if [ $timeout -le 0 ]; then
+    echo "Server failed to start within the timeout period"
+    exit 1
+  fi
+  sleep 1
+done
+
+echo "Server is running on http://localhost:3000"
