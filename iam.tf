@@ -1,19 +1,19 @@
 resource "aws_iam_policy" "cloudwatch_agent_policy" {
   name        = "CloudWatchAgentPolicy"
   description = "Policy for CloudWatch Agent to push logs"
-  policy      = jsonencode({
-    "Version": "2012-10-17",
-    "Statement": [
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
       {
-        "Effect": "Allow",
-        "Action": [
+        "Effect" : "Allow",
+        "Action" : [
           "logs:CreateLogGroup",
           "logs:PutLogEvents",
           "logs:CreateLogStream",
           "logs:DescribeLogStreams",
           "logs:DescribeLogGroups"
         ],
-        "Resource": "*"
+        "Resource" : "*"
       }
     ]
   })
@@ -22,18 +22,18 @@ resource "aws_iam_policy" "cloudwatch_agent_policy" {
 resource "aws_iam_policy" "codedeploy_policy" {
   name        = "CodeDeployPolicy"
   description = "Policy for CodeDeploy to manage deployments"
-  policy      = jsonencode({
-    "Version": "2012-10-17",
-    "Statement": [
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
       {
-        "Effect": "Allow",
-        "Action": [
+        "Effect" : "Allow",
+        "Action" : [
           "codedeploy:*",
           "autoscaling:*",
           "ec2:*",
           "s3:*"
         ],
-        "Resource": "*"
+        "Resource" : "*"
       }
     ]
   })
@@ -43,14 +43,14 @@ resource "aws_iam_role" "ec2_instance_role" {
   name = "EC2InstanceRole"
 
   assume_role_policy = jsonencode({
-    "Version": "2012-10-17",
-    "Statement": [
+    "Version" : "2012-10-17",
+    "Statement" : [
       {
-        "Effect": "Allow",
-        "Principal": {
-          "Service": ["ec2.amazonaws.com", "codedeploy.amazonaws.com"]
+        "Effect" : "Allow",
+        "Principal" : {
+          "Service" : ["ec2.amazonaws.com", "codedeploy.amazonaws.com"]
         },
-        "Action": "sts:AssumeRole"
+        "Action" : "sts:AssumeRole"
       }
     ]
   })

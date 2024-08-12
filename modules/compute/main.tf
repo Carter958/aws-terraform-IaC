@@ -36,7 +36,7 @@ resource "aws_security_group" "instance" {
 # Launch Template for EC2 Instances
 resource "aws_launch_template" "app" {
   name_prefix   = "app-launch-template"
-  image_id      = "ami-03972092c42e8c0ca"  # Example AMI ID, change to your region-specific ID
+  image_id      = "ami-03972092c42e8c0ca" # Example AMI ID, change to your region-specific ID
   instance_type = "t2.micro"
 
   user_data = base64encode(<<EOF
@@ -129,10 +129,10 @@ EOF
 
 # Auto Scaling Group
 resource "aws_autoscaling_group" "app" {
-  vpc_zone_identifier    = [var.public_subnet_id_1, var.public_subnet_id_2]
-  desired_capacity       = 1
-  max_size               = 3
-  min_size               = 1
+  vpc_zone_identifier = [var.public_subnet_id_1, var.public_subnet_id_2]
+  desired_capacity    = 1
+  max_size            = 3
+  min_size            = 1
   launch_template {
     id      = aws_launch_template.app.id
     version = "$Latest"
@@ -201,8 +201,8 @@ resource "aws_autoscaling_attachment" "asg_attachment" {
 
 # Target Tracking Scaling Policy
 resource "aws_autoscaling_policy" "cpu_target_tracking" {
-  name                   = "cpu-target-tracking"
-  policy_type            = "TargetTrackingScaling"
+  name                      = "cpu-target-tracking"
+  policy_type               = "TargetTrackingScaling"
   estimated_instance_warmup = 300
 
   target_tracking_configuration {

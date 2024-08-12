@@ -8,9 +8,9 @@ module "network" {
 }
 
 module "compute" {
-  source             = "./modules/compute"
-  vpc_id             = module.network.vpc_id
-  public_subnet_id_1 = module.network.public_subnet_id_1
-  public_subnet_id_2 = module.network.public_subnet_id_2
+  source               = "./modules/compute"
+  vpc_id               = module.network.vpc_id
+  public_subnet_id_1   = module.network.public_subnet_id_1
+  public_subnet_id_2   = module.network.public_subnet_id_2
   iam_instance_profile = aws_iam_instance_profile.instance_profile.name
 }
