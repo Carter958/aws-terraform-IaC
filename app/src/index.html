@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Infrastructure Description</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    pre {
+      background-color: #f4f4f4;
+      padding: 10px;
+      border: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+  <h1>Infrastructure Description</h1>
+  <p>This application is hosted on an AWS EC2 instance. The infrastructure is managed using Terraform, which allows for automated and repeatable deployments.</p>
+  
+  <h2>Security Group</h2>
+  <p>The security group allows inbound traffic on ports 22 (SSH), 80 (HTTP), and 3000 (application port). It also allows all outbound traffic.</p>
+  <pre>
+resource "aws_security_group" "instance" {
+  vpc_id = var.vpc_id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+  </pre>
+
+  <h2>Launch Template</h2>
+  <p>The launch template defines the configuration for the EC2 instances, including the AMI, instance type, user data script, and IAM instance profile.</p>
+  <pre>
+resource "aws_launch_template" "app" {
+  name_prefix   = "app-launch-template"
+  image_id      = "ami-03972092c42e8c0ca"
+  instance_type = "t2.micro"
+
+  user_data = base64encode(<<EOF
+#!/bin/bash
+yum install -y amazon-cloudwatch-agent
+yum install -y ruby wget
+cd /home/ec2-user
+wget https://aws-codedeploy-us-east-1.s3.amazonaws.com/latest/install
+chmod +x ./install
+./install auto
+service codedeploy-agent start
+EOF
+  )
+
+  iam_instance_profile {
+    name = var.iam_instance_profile
+  }
+
+  network_interfaces {
+    security_groups = [aws_security_group.instance.id]
+  }
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "app-instance"
+    }
+  }
+}
+  </pre>
+
+  <h2>Auto Scaling Group</h2>
+  <p>The auto scaling group ensures that the desired number of instances are running, and it can scale up or down based on demand.</p>
+  <pre>
+resource "aws_autoscaling_group" "app" {
+  vpc_zone_identifier    = [var.public_subnet_id_1, var.public_subnet_id_2]
+  desired_capacity       = 1
+  max_size               = 3
+  min_size               = 1
+  launch_template {
+    id      = aws_launch_template.app.id
+    version = "$Latest"
+  }
+
+  tag {
+    key                 = "Name"
+    value               = "app-instance"
+    propagate_at_launch = true
+  }
+}
+  </pre>
+
+  <h2>Load Balancer</h2>
+  <p>The load balancer distributes incoming traffic across multiple instances to ensure high availability and reliability.</p>
+  <pre>
+resource "aws_lb" "app" {
+  name               = "app-load-balancer"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.instance.id]
+  subnets            = [var.public_subnet_id_1, var.public_subnet_id_2]
+
+  enable_deletion_protection = false
+
+  tags = {
+    Name = "app-load-balancer"
+  }
+}
+
+resource "aws_lb_listener" "app" {
+  load_balancer_arn = aws_lb.app.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.app.arn
+  }
+}
+
+resource "aws_lb_target_group" "app" {
+  name     = "app-target-group"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = var.vpc_id
+
+  health_check {
+    interval            = 30
+    path                = "/"
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    matcher             = "200-399"
+  }
+
+  tags = {
+    Name = "app-target-group"
+  }
+}
+
+resource "aws_autoscaling_attachment" "asg_attachment" {
+  autoscaling_group_name = aws_autoscaling_group.app.name
+  lb_target_group_arn    = aws_lb_target_group.app.arn
+}
+  </pre>
+
+  <h2>Auto Scaling Policy</h2>
+  <p>The auto scaling policy adjusts the number of instances based on the average CPU utilization to maintain performance.</p>
+  <pre>
+resource "aws_autoscaling_policy" "cpu_target_tracking" {
+  name                   = "cpu-target-tracking"
+  policy_type            = "TargetTrackingScaling"
+  estimated_instance_warmup = 300
+
+  target_tracking_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ASGAverageCPUUtilization"
+    }
+
+    target_value = 50.0
+  }
+
+  autoscaling_group_name = aws_autoscaling_group.app.name
+}
+  </pre>
+</body>
+</html>
