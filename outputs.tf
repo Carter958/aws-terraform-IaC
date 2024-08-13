@@ -1,6 +1,6 @@
 # outputs.tf in the root directory
 
-output "test_output" {
+output "load_balancer_DNS_name" {
   value = module.compute.load_balancer_dns_name
 }
 
