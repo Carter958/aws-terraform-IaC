@@ -87,7 +87,7 @@ The architecture consists of:
 
 ## **Usage**
 
-- **Access the Application**: Once the infrastructure is up, the public IP of the load balancer will be displayed in the output. Use this to access your application.
+- **Access the Application**: Once the infrastructure is up, the DNS name of the load balancer will be displayed in the output. Use this to access the webpage.
 
 - **Scaling**: The infrastructure automatically scales based on the CPU utilization metrics.
 
