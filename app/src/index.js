@@ -13,7 +13,8 @@ app.get('/', (req, res) => {
 
 // Define a health check endpoint
 app.get('/health', (req, res) => {
-  res.status(200).send('OK');
+  console.log('Health check endpoint was accessed');
+  res.status(200).type('text/plain').send('OK');
 });
 
 // Start the server
